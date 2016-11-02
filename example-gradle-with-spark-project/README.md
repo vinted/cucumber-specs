@@ -19,13 +19,22 @@ To execute aforementioned specifications, simply run this command:
 
 It will download all the necessary dependencies, the only thing you need is Java SDK on your machine.
 
+## Development cycle
+
 You can also run the tests in development-friendly mode with continuous build on:
 
 ```sh
 ./gradlew test -t
 ```
 
-This way you can simply edit your files and see the results as soon as the specification or implementation files are saved.
+or if you want faster feedback loop and run only those specifications that have `@dev` marker as a first line in the file,
+it's highly recommended to just use this handy script:
+
+```sh
+./autotest.sh
+```
+
+This way you can simply edit your files and see test results as soon as the specification or implementation files are saved.
 
 # Future
 
