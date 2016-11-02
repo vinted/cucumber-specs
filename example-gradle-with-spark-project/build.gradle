@@ -1,0 +1,67 @@
+apply plugin: 'scala'
+apply plugin: 'cucumber-jvm'
+
+ext {
+    scalaVersion = '2.10'
+    scalaVersionFull = '2.10.6'
+    sparkVersion = '1.6'
+    sparkVersionFull = '1.6.2'
+    cucumberVersion = '1.2.5'
+}
+
+repositories {
+    jcenter()
+
+    maven { url 'https://github.com/saulius/mvn-repo/raw/master/releases' }
+    maven { url 'https://github.com/vinted/cucumber-specs/raw/master/cucumber-specs-for-spark/releases' }
+}
+
+buildscript {
+  repositories {
+      jcenter()
+      mavenCentral()
+
+      maven { url 'https://github.com/saulius/mvn-repo/raw/master/releases' }
+      maven { url 'http://repo.bodar.com' }
+  }
+
+  dependencies {
+      classpath 'com.github.saulius:gradle-cucumber-jvm-plugin:0.8.2'
+  }
+}
+
+addCucumberSuite 'cucumberTest'
+
+dependencies {
+    compile "org.scala-lang:scala-library:${scalaVersionFull}"
+
+    compile "org.apache.spark:spark-core_${scalaVersion}:${sparkVersionFull}"
+    compile "org.apache.spark:spark-sql_${scalaVersion}:${sparkVersionFull}"
+    compile "org.apache.spark:spark-hive_${scalaVersion}:${sparkVersionFull}"
+
+    cucumberTestCompile "info.cukes:cucumber-scala_${scalaVersion}:${cucumberVersion}"
+    cucumberTestCompile "com.vinted:cucumber-specs-for-spark:0.1.0_scala-${scalaVersion}_spark-1.6"
+}
+
+cucumberTest {
+    stepDefinitionRoots = ['com.vinted.cucumber.spark.steps']
+    isStrict = true
+    maxParallelForks = 1 // project.cucumberParallelism
+    junitReport = true
+    tags = project.hasProperty('tags') && project.tags ? project.tags.split(',') : ['~@ignore']
+}
+
+cucumberTest.systemProperty('-XX:MaxPermSize', '256M')
+// this is the place to override default TestHive configuration
+cucumberTest.systemProperty('-Dspark.serializer', 'org.apache.spark.serializer.KryoSerializer')
+
+task cucumber(dependsOn: cucumberTest)
+
+test.dependsOn project.tasks.cucumber
+
+test {
+    testLogging {
+        exceptionFormat 'full'
+    }
+}
+
