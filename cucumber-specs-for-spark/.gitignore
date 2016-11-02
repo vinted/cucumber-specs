@@ -1,0 +1,4 @@
+build
+.gradle
+derby.log
+.auth_token

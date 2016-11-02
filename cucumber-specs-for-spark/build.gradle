@@ -1,0 +1,77 @@
+apply plugin: 'scala'
+apply plugin: 'maven-publish'
+
+ext {
+    libraryVersion = project.libraryVersion
+
+    scalaVersionFull = project.hasProperty('scalaVersion') ? project.scalaVersion : '2.10.6'
+    scalaVersion = "${scalaVersionFull.tokenize('.')[0]}.${scalaVersionFull.tokenize('.')[1]}"
+    sparkVersionFull = project.hasProperty('sparkVersion') ? project.sparkVersion : '1.6.2'
+    sparkVersion = "${sparkVersionFull.tokenize('.')[0]}.${sparkVersionFull.tokenize('.')[1]}"
+
+    libraryVersionStr = "${libraryVersion}_scala-${scalaVersion}_spark-${sparkVersion}"
+    println "Library version: $libraryVersionStr"
+
+    cucumberVersion = '1.2.5'
+}
+
+jar {
+    version = libraryVersionStr
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId 'com.vinted'
+            artifactId rootProject.name
+            version libraryVersionStr
+
+            from components.java
+        }
+    }
+
+    repositories {
+        maven {
+            url 'releases'
+        }
+    }
+}
+
+repositories {
+    jcenter()
+    mavenCentral()
+}
+
+dependencies {
+    compile "org.scala-lang:scala-library:${scalaVersionFull}"
+
+    compile "info.cukes:cucumber-scala_${scalaVersion}:${cucumberVersion}"
+    compile "org.scalatest:scalatest_${scalaVersion}:3.0.0"
+
+    compile "org.apache.spark:spark-core_${scalaVersion}:${sparkVersionFull}"
+    compile "org.apache.spark:spark-sql_${scalaVersion}:${sparkVersionFull}"
+    compile "org.apache.spark:spark-hive_${scalaVersion}:${sparkVersionFull}"
+
+    compile 'de.vandermeer:asciitable:0.2.5'
+    compile "org.scalactic:scalactic_${scalaVersion}:3.0.0-M15"
+}
+
+test {
+    testLogging {
+        exceptionFormat 'full'
+    }
+}
+
+task scalaTest(type: JavaExec) {
+    main = 'org.scalatest.tools.Runner'
+    args = [
+        '-R', 'build/classes/test',
+        '-oDI',
+        '-w', project.hasProperty('package') ? project.package : ''
+    ]
+    classpath = sourceSets.test.runtimeClasspath
+
+    jvmArgs ('-XX:MaxPermSize=512m')
+}
+
+test.dependsOn scalaTest
