@@ -12,8 +12,7 @@ for scala_version_full in $SCALA_VERSIONS; do
         scala_version=`ruby -e 'puts ARGV[0].split(".").slice(0, 2).join(".")' $scala_version_full`
         full_version="${VERSION}_scala-${scala_version}_spark-${spark_version}"
         echo "Building cucumber-specs-for-spark-${full_version}"
-        # ./gradlew clean build publish \
-        ./gradlew clean jar publish \
+        ./gradlew clean build publish \
                   -PscalaVersion=$scala_version_full \
                   -PsparkVersion=$spark_version_full \
                   -PlibraryVersion=$VERSION
